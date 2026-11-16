@@ -72,12 +72,12 @@ button,textarea{font:inherit;color:inherit}
 .chip.locked{opacity:.55;border-style:dashed}
 .veil{overflow-y:auto;justify-content:safe center}
 .q-top{display:flex;justify-content:space-between;align-items:center;gap:1.5rem;flex-wrap:wrap;margin:1.4rem 0 1.6rem}
-.weekstrip{display:flex;gap:.5rem}
-.weekstrip .d{width:42px;text-align:center;font-size:.8rem;color:var(--muted)}
-.weekstrip .c{width:38px;height:38px;margin:0 auto .3rem;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--bg)}
+.weekstrip{display:flex;gap:.4rem}
+.weekstrip .d{display:flex;flex-direction:column;align-items:center;width:40px;font-size:.8rem;line-height:1.2;color:var(--muted)}
+.weekstrip .c{flex:none;width:36px;height:36px;margin:0 auto .3rem;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--bg)}
 .weekstrip .on .c{background:var(--accent);border-color:var(--accent)}
-.weekstrip .today .c{border-color:var(--ink)}
-.weekstrip .today{color:var(--ink);font-weight:700}
+.weekstrip .is-today .c{border-color:var(--ink)}
+.weekstrip .is-today{color:var(--ink);font-weight:700}
 .points{text-align:right}
 .points strong{display:block;font-family:var(--serif);font-weight:400;font-size:2.4rem;line-height:1;color:var(--glow)}
 .points span{font-size:.85rem;color:var(--muted)}
@@ -1563,8 +1563,8 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;padding:0 1rem 3rem
   function renderQuest(){
     const strip = $('#weekStrip'); if(!strip) return; strip.innerHTML = '';
     const names = ['월','화','수','목','금','토','일'], tk = dayKey();
-    weekDays().forEach((d, i) => { const k = dayKey(d), el = document.createElement('div'); el.className = 'd' + (attended(k) ? ' on' : '') + (k === tk ? ' today' : '');
-      el.innerHTML = `<div class="c">${attended(k) ? '✓' : ''}</div>${names[i]}`; strip.appendChild(el); });
+    weekDays().forEach((d, i) => { const k = dayKey(d), el = document.createElement('div'); el.className = 'd' + (attended(k) ? ' on' : '') + (k === tk ? ' is-today' : '');
+      el.innerHTML = `<div class="c">${attended(k) ? '✓' : ''}</div><span>${names[i]}</span>`; strip.appendChild(el); });
     $('#points').textContent = store.points;
     const dk = dayKey(), wk = dayKey(weekStart());
     [['#dailyQ', false], ['#weeklyQ', true]].forEach(([sel, wkly]) => {
