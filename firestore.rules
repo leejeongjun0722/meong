@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 멍 광장 글: 앱 사용자는 누구나 읽고, 자기 글만 올리고 지울 수 있음
+    match /posts/{postId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['uid', 'text', 'scene', 'min', 'at'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 500
+        && request.resource.data.scene is string
+        && request.resource.data.scene.size() <= 10
+        && request.resource.data.min is int
+        && request.resource.data.min >= 1 && request.resource.data.min <= 120
+        && request.resource.data.at == request.time;
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow update: if false;
+    }
+
+    // 신고: 앱에서는 쓰기만 가능, 확인은 Firebase 콘솔에서
+    match /reports/{reportId} {
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['postId', 'uid', 'at'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.postId is string
+        && request.resource.data.at == request.time;
+      allow read, update, delete: if false;
+    }
+  }
+}

@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>멍 — 아무것도 하지 않는 시간</title>
+<!-- Google Analytics (GA4): 아래 G-XXXXXXXXXX를 내 측정 ID로 바꾸세요 -->
+<script>
+  window.GA_ID = 'G-XXXXXXXXXX';
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  if (/^G-[A-Z0-9]+$/.test(window.GA_ID) && window.GA_ID !== 'G-XXXXXXXXXX') {
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + window.GA_ID;
+    document.head.appendChild(s);
+    gtag('js', new Date());
+    gtag('config', window.GA_ID);
+  }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#DDE4E6; --surface:#EEF2F3; --ink:#24343C; --muted:#5B6C73;
+  --accent:#4F7F7C; --line:#B9C6CA; --glow:#C98A3E;
+  --serif:"Gowun Batang","Nanum Myeongjo","AppleMyungjo",Georgia,serif;
+  --sans:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#141C21; --surface:#1C262C; --ink:#D6DFE2; --muted:#93A4AA;
+    --accent:#7FB3AE; --line:#2E3B42; --glow:#E8B26A; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141C21; --surface:#1C262C; --ink:#D6DFE2; --muted:#93A4AA;
+  --accent:#7FB3AE; --line:#2E3B42; --glow:#E8B26A; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.7;-webkit-font-smoothing:antialiased}
+button,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+/* ---------- 장면 ---------- */
+.stage{position:relative;height:100svh;min-height:600px;overflow:hidden;color:#F2F5F4;background:#10171C}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.veil{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:2rem 1.25rem;text-align:center;transition:opacity 1.6s ease}
+.veil h1{font-family:var(--serif);font-weight:400;font-size:clamp(3.5rem,13vw,8.5rem);line-height:1;margin:0;letter-spacing:.02em;
+  text-shadow:0 2px 30px rgba(0,0,0,.35)}
+.veil .sub{font-family:var(--serif);font-size:clamp(1.02rem,2.5vw,1.3rem);margin:1rem 0 2rem;max-width:30em;opacity:.9;
+  text-shadow:0 1px 12px rgba(0,0,0,.4)}
+
+.panel{background:rgba(16,23,28,.42);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:1.2rem 1.3rem 1.3rem;width:min(560px,100%)}
+.row{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
+.row + .row{margin-top:.85rem}
+.chip{background:transparent;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:.45rem 1rem;cursor:pointer;
+  font-size:.95rem;transition:background .25s,border-color .25s}
+.chip:hover{border-color:rgba(255,255,255,.6)}
+.chip[aria-pressed="true"]{background:rgba(255,255,255,.9);color:#1B262C;border-color:transparent}
+.scene-chip{font-family:var(--serif);font-size:1.02rem;padding:.5rem 1.05rem}
+.start{margin-top:1.1rem;width:100%;border:0;border-radius:14px;padding:.95rem 1rem;cursor:pointer;
+  background:#F2F5F4;color:#1B262C;font-family:var(--serif);font-size:1.15rem;font-weight:700;transition:transform .2s}
+.start:hover{transform:translateY(-1px)}
+.today-mini{display:flex;align-items:center;gap:.7rem;margin-top:.95rem;font-size:.88rem;opacity:.85}
+.today-mini .track{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.18);overflow:hidden}
+.today-mini .fill{height:100%;width:0;background:#F2F5F4;border-radius:2px;transition:width .8s ease}
+
+.scroll-cue{position:absolute;bottom:calc(1.2rem + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);
+  font-size:.85rem;opacity:.65;color:#F2F5F4;text-decoration:none;transition:opacity 1.6s;white-space:nowrap}
+
+.guide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;
+  font-family:var(--serif);font-size:clamp(1.2rem,3.4vw,1.8rem);text-align:center;padding:2rem;opacity:0;transition:opacity 2.5s ease;
+  text-shadow:0 1px 18px rgba(0,0,0,.5)}
+.hud{position:absolute;left:50%;bottom:calc(2rem + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  display:flex;align-items:center;gap:1rem;opacity:0;transition:opacity 1.2s;pointer-events:none}
+.hud.show{opacity:1;pointer-events:auto}
+.ring{width:52px;height:52px}
+.ring circle{fill:none;stroke-width:2.5}
+.ring .track{stroke:rgba(255,255,255,.18)}
+.ring .bar{stroke:rgba(255,255,255,.85);stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%}
+.hud .time{font-variant-numeric:tabular-nums;font-size:.95rem;opacity:.85;min-width:3.2em}
+.ghost{background:rgba(16,23,28,.4);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:.45rem 1rem;cursor:pointer;color:#F2F5F4}
+.sound-toggle{position:absolute;top:calc(1rem + env(safe-area-inset-top,0px));right:1rem}
+
+body.immersed .veil,body.immersed .scroll-cue{opacity:0;pointer-events:none}
+body.immersed{overflow:hidden}
+body.immersed .stage{cursor:none}
+body.immersed .stage.awake{cursor:auto}
+
+.reflect{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:1.25rem}
+.reflect.open{display:flex}
+.reflect .panel{text-align:left}
+.reflect h2{font-family:var(--serif);font-weight:400;font-size:1.6rem;margin:0 0 .3rem}
+.reflect p{margin:0 0 1rem;opacity:.85;font-size:.95rem}
+.reflect textarea{width:100%;min-height:8em;resize:vertical;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);
+  border-radius:12px;padding:.8rem .9rem;line-height:1.6;color:#F2F5F4}
+.reflect textarea::placeholder{color:rgba(242,245,244,.5)}
+.reflect label{display:flex;align-items:center;gap:.5rem;margin-top:.8rem;font-size:.92rem;cursor:pointer}
+.reflect label[hidden]{display:none}
+.reflect input[type=checkbox]{width:1.05rem;height:1.05rem;accent-color:#F2F5F4}
+.reflect .actions{display:flex;gap:.6rem;margin-top:.9rem}
+.reflect .actions .start{margin:0;flex:1}
+.reflect .actions .ghost{flex:0 0 auto;padding:.9rem 1.1rem;border-radius:14px}
+
+/* ---------- 본문 ---------- */
+main{max-width:760px;margin:0 auto;padding:5rem 1.4rem 4rem}
+section + section{margin-top:5.5rem}
+main h2{font-family:var(--serif);font-weight:400;font-size:clamp(1.7rem,4vw,2.3rem);line-height:1.3;margin:0 0 1rem}
+main p{font-family:var(--serif);font-size:1.08rem;line-height:1.9;margin:0 0 1.1rem;max-width:36em}
+.lede{color:var(--muted)}
+.note{font-size:.9rem;color:var(--muted);font-family:var(--sans)}
+
+/* 오늘의 멍 */
+.today{display:grid;grid-template-columns:auto 1fr;gap:2rem;align-items:center;margin-top:1.5rem}
+@media(max-width:560px){.today{grid-template-columns:1fr;justify-items:start}}
+.big-ring{position:relative;width:180px;height:180px}
+.big-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.big-ring circle{fill:none;stroke-width:6}
+.big-ring .t{stroke:var(--line)}
+.big-ring .b{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset 1s ease}
+.big-ring .label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.big-ring strong{font-family:var(--serif);font-weight:400;font-size:2.6rem;line-height:1}
+.big-ring span{font-size:.88rem;color:var(--muted);margin-top:.3rem}
+.goal-pick{margin-top:.4rem;display:flex;gap:.45rem;flex-wrap:wrap}
+.goal-pick button{background:none;border:1px solid var(--line);border-radius:999px;padding:.35rem .9rem;cursor:pointer;font-size:.92rem}
+.goal-pick button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.facts{display:flex;gap:2.2rem;flex-wrap:wrap;margin:1.3rem 0 1.4rem;color:var(--muted);font-size:.92rem}
+.facts strong{display:block;font-family:var(--serif);font-size:1.7rem;font-weight:400;color:var(--ink);line-height:1.2}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:.5rem;align-items:end;height:90px;max-width:340px}
+.week .day{display:flex;flex-direction:column;align-items:center;gap:.3rem;height:100%;justify-content:flex-end}
+.week .bar{width:100%;max-width:26px;border-radius:5px 5px 2px 2px;background:var(--line);min-height:3px;transition:height .8s ease}
+.week .bar.met{background:var(--accent)}
+.week .d{font-size:.78rem;color:var(--muted)}
+.week .day.is-today .d{color:var(--ink);font-weight:700}
+
+/* 목록 */
+.log{list-style:none;padding:0;margin:0}
+.log li{border-top:1px solid var(--line);padding:1.1rem 0}
+.log li:last-child{border-bottom:1px solid var(--line)}
+.log .meta{font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.log .text{font-family:var(--serif);font-size:1.05rem;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
+.log .tools{display:flex;gap:.9rem}
+.link{background:none;border:0;color:var(--muted);cursor:pointer;font-size:.85rem;padding:0;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line)}
+.link:hover{color:var(--ink)}
+.tag{font-size:.78rem;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:0 .5rem}
+.empty{font-family:var(--serif);color:var(--muted);border:1px dashed var(--line);border-radius:14px;padding:1.4rem;text-align:center}
+.back{display:inline-block;margin-top:1.6rem;background:var(--ink);color:var(--bg);border:0;border-radius:999px;padding:.7rem 1.4rem;cursor:pointer;font-family:var(--serif)}
+
+/* 광장 */
+.board{columns:2 260px;column-gap:1.2rem;margin-top:1.5rem}
+.card{break-inside:avoid;background:var(--surface);border-radius:16px;padding:1.1rem 1.2rem;margin:0 0 1.2rem;border:1px solid var(--line)}
+.card .text{font-family:var(--serif);font-size:1.05rem;line-height:1.75;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
+.card .meta{display:flex;justify-content:space-between;gap:.8rem;margin-top:.7rem;font-size:.82rem;color:var(--muted)}
+.card.mine{border-color:var(--accent)}
+.status{color:var(--muted);font-size:.92rem;margin-top:1rem}
+
+.how{display:grid;gap:1.6rem;margin-top:2rem}
+@media(min-width:640px){.how{grid-template-columns:1fr 1fr}}
+.how h3{font-family:var(--serif);font-size:1.15rem;font-weight:700;margin:0 0 .35rem}
+.how p{font-size:1rem;line-height:1.75;color:var(--muted);margin:0}
+.how > div{border-top:1px solid var(--line);padding-top:1rem}
+
+.toast{position:fixed;left:50%;bottom:calc(1.5rem + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);
+  padding:.6rem 1.1rem;border-radius:999px;font-size:.92rem;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;z-index:20}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+footer{text-align:center;color:var(--muted);font-size:.85rem;padding:0 1rem 3rem}
+
+@media (prefers-reduced-motion:reduce){
+  .veil,.guide,.hud,.scroll-cue,.big-ring .b,.week .bar,.today-mini .fill{transition-duration:.01s}
+}
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <canvas id="scene" aria-hidden="true"></canvas>
+
+  <div class="veil" id="veil">
+    <h1>멍</h1>
+    <p class="sub">눈에 힘을 풀고, 생각이 제멋대로 흘러가게 두는 시간.<br>쉬는 동안 뇌는 조용히 연결을 만듭니다.</p>
+
+    <div class="panel" role="group" aria-label="멍때리기 설정">
+      <div class="row" id="scenes" aria-label="장면">
+        <button class="chip scene-chip" data-scene="fire" aria-pressed="true">불멍</button>
+        <button class="chip scene-chip" data-scene="water" aria-pressed="false">물멍</button>
+        <button class="chip scene-chip" data-scene="rain" aria-pressed="false">비멍</button>
+        <button class="chip scene-chip" data-scene="fish" aria-pressed="false">어항멍</button>
+        <button class="chip scene-chip" data-scene="cloud" aria-pressed="false">구름멍</button>
+        <button class="chip scene-chip" data-scene="snow" aria-pressed="false">눈멍</button>
+        <button class="chip scene-chip" data-scene="star" aria-pressed="false">별멍</button>
+      </div>
+      <div class="row" id="durations" aria-label="시간">
+        <button class="chip" data-min="3" aria-pressed="false">3분</button>
+        <button class="chip" data-min="5" aria-pressed="true">5분</button>
+        <button class="chip" data-min="10" aria-pressed="false">10분</button>
+        <button class="chip" data-min="20" aria-pressed="false">20분</button>
+      </div>
+      <button class="start" id="startBtn">멍 시작하기</button>
+      <div class="today-mini" aria-live="polite">
+        <span id="miniText">오늘 0 / 10분</span>
+        <div class="track"><div class="fill" id="miniFill"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <a class="scroll-cue" href="#today">오늘의 멍과 광장 보기</a>
+  <button class="ghost sound-toggle" id="soundBtn" aria-pressed="true">소리 켜짐</button>
+  <div class="guide" id="guide"></div>
+
+  <div class="hud" id="hud">
+    <svg class="ring" viewBox="0 0 52 52" aria-hidden="true">
+      <circle class="track" cx="26" cy="26" r="22"/>
+      <circle class="bar" id="ringBar" cx="26" cy="26" r="22"/>
+    </svg>
+    <span class="time" id="timeLeft">5:00</span>
+    <button class="ghost" id="stopBtn">그만하기</button>
+  </div>
+
+  <div class="reflect" id="reflect" role="dialog" aria-modal="true" aria-labelledby="reflectTitle">
+    <div class="panel">
+      <h2 id="reflectTitle">잘 쉬었어요.</h2>
+      <p id="reflectSub">방금 스쳐 간 생각이 있다면 사라지기 전에 붙잡아 두세요. 엉뚱해도, 한 단어여도 괜찮아요.</p>
+      <textarea id="thought" maxlength="500" placeholder="떠오른 생각, 아이디어, 장면…"></textarea>
+      <label id="shareLabel" hidden><input type="checkbox" id="shareCheck"> 멍 광장에도 이름 없이 공유하기</label>
+      <div class="actions">
+        <button class="start" id="saveBtn">생각 저장하기</button>
+        <button class="ghost" id="skipBtn">건너뛰기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <section id="today">
+    <h2>오늘의 멍</h2>
+    <p class="lede">하루에 얼마나 멍때릴지 정해 두면, 쉬는 것도 습관이 됩니다.</p>
+    <div class="today">
+      <div class="big-ring">
+        <svg viewBox="0 0 180 180" aria-hidden="true">
+          <circle class="t" cx="90" cy="90" r="80"/>
+          <circle class="b" id="bigBar" cx="90" cy="90" r="80"/>
+        </svg>
+        <div class="label"><strong id="todayMin">0</strong><span id="todayGoal">목표 10분</span></div>
+      </div>
+      <div>
+        <div class="note">하루 목표</div>
+        <div class="goal-pick" id="goalPick" role="group" aria-label="하루 목표">
+          <button data-goal="5" aria-pressed="false">5분</button>
+          <button data-goal="10" aria-pressed="true">10분</button>
+          <button data-goal="15" aria-pressed="false">15분</button>
+          <button data-goal="20" aria-pressed="false">20분</button>
+          <button data-goal="30" aria-pressed="false">30분</button>
+        </div>
+        <div class="facts">
+          <div><strong id="streak">0</strong>일 연속 달성</div>
+          <div><strong id="statSessions">0</strong>번 멍때림</div>
+          <div><strong id="statMinutes">0</strong>분 누적</div>
+        </div>
+        <div class="week" id="week" aria-label="최근 7일 멍 시간"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="notes">
+    <h2>멍하다 건진 생각들</h2>
+    <p class="lede" id="notesLede">내 생각은 나만 볼 수 있어요. 광장에 공유한 것만 다른 사람에게 보입니다.</p>
+    <ul class="log" id="log"></ul>
+    <button class="back" id="againBtn">한 번 더 멍때리기</button>
+  </section>
+
+  <section id="plaza">
+    <h2>멍 광장</h2>
+    <p class="lede">다른 사람들이 멍때리다 건진 생각들이에요. 이름 없이 올라옵니다.</p>
+    <div class="status" id="boardStatus">광장을 불러오는 중이에요.</div>
+    <div class="board" id="board"></div>
+  </section>
+
+  <section id="why">
+    <h2>아무것도 안 할 때, 뇌는 가장 바쁩니다</h2>
+    <p>무언가에 집중하지 않을 때 활발해지는 뇌 영역의 연결망이 있습니다. ‘기본 모드 네트워크’라고 부르는 이 회로는 기억을 정리하고, 서로 멀리 떨어진 생각을 이어 붙이고, 나 자신에 대해 곱씹는 일과 관련이 있다고 알려져 있어요.</p>
+    <p>샤워하다가, 산책하다가 갑자기 좋은 생각이 떠오르는 경험은 우연이 아닙니다. 문제에서 잠시 손을 떼고 마음이 떠돌게 두면, 막혀 있던 생각이 다른 길로 풀리는 경우가 많아요. 멍은 그 틈을 일부러 만드는 연습입니다.</p>
+    <div class="how">
+      <div><h3>천천히 반복되는 것을 보세요</h3><p>타오르는 불, 창을 타고 흐르는 빗방울, 헤엄치는 물고기처럼 예측은 되지만 똑같지는 않은 움직임은 주의를 가볍게 붙잡아 생각이 자유로워지게 돕습니다.</p></div>
+      <div><h3>짧게, 자주</h3><p>한 번에 오래 하는 것보다 일하는 중간에 5분씩 끼워 넣는 편이 효과를 느끼기 쉬워요. 막힌 문제가 있다면 그 문제를 한 번 떠올린 뒤 시작해 보세요.</p></div>
+      <div><h3>떠오른 생각은 바로 적기</h3><p>멍때리는 동안 스친 아이디어는 금방 사라집니다. 끝나자마자 적어 두면 쉬는 시간이 아이디어 노트가 됩니다.</p></div>
+      <div><h3>스마트폰은 멍이 아닙니다</h3><p>피드를 넘기는 건 쉬는 것 같아도 뇌에는 계속 새 정보가 들어갑니다. 진짜 멍은 입력을 줄이는 데서 시작해요.</p></div>
+    </div>
+    <p class="note" style="margin-top:2rem">이 사이트는 휴식과 집중을 돕기 위한 도구이며, 의료적 치료를 대신하지 않습니다.</p>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status"></div>
+<footer>멍 — 잠깐 멈춰도 괜찮아요</footer>
+
+<script src="vendor/firebase-app-compat.js"></script>
+<script src="vendor/firebase-auth-compat.js"></script>
+<script src="vendor/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+(() => {
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = s => document.querySelector(s);
+  const canvas = $('#scene'), ctx = canvas.getContext('2d');
+  let W = 0, H = 0, DPR = 1;
+  const state = { scene:'fire', minutes:5, sound:true, running:false, startAt:0, duration:0, elapsedMin:0 };
+  const sceneName = {fire:'불멍', water:'물멍', rain:'비멍', fish:'어항멍', cloud:'구름멍', snow:'눈멍', star:'별멍'};
+  const MAX_THOUGHTS = 300, MAX_SHARED = 30;
+  const track = (name, params) => { try{ if(typeof window.gtag === 'function') window.gtag('event', name, params || {}); }catch(e){} };
+
+  /* ================= 저장 ================= */
+  const KEY = 'meong-v2';
+  const blank = () => ({sessions:0, minutes:0, goal:10, daily:{}, thoughts:[]});
+  function normalize(o){
+    const b = blank(); if(!o || typeof o !== 'object') return b;
+    return {
+      sessions: +o.sessions || 0, minutes: +o.minutes || 0,
+      goal: [5,10,15,20,30].includes(+o.goal) ? +o.goal : 10,
+      daily: (o.daily && typeof o.daily === 'object') ? {...o.daily} : {},
+      thoughts: Array.isArray(o.thoughts) ? o.thoughts.filter(t => t && t.text).map(t => ({...t})) : []
+    };
+  }
+  function loadLocal(){
+    try{ const v = localStorage.getItem(KEY) || localStorage.getItem('meong-v1'); if(v) return normalize(JSON.parse(v)); }catch(e){}
+    return blank();
+  }
+  let store = loadLocal();
+  let remoteRef = null, writing = false, dirty = false;
+  async function flushRemote(){
+    if(!remoteRef) return;
+    if(writing){ dirty = true; return; }
+    writing = true;
+    try{ await remoteRef.set(JSON.parse(JSON.stringify(store))); }
+    catch(e){ if(e && e.code !== 'unavailable') remoteRef = null; }
+    writing = false;
+    if(dirty){ dirty = false; flushRemote(); }
+  }
+  function persist(){
+    try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){}
+    flushRemote();
+  }
+  const dayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  function pruneDaily(){
+    const cut = new Date(); cut.setDate(cut.getDate() - 90); const ck = dayKey(cut);
+    for(const k of Object.keys(store.daily)) if(k < ck) delete store.daily[k];
+  }
+  function streak(){
+    let n = 0; const d = new Date();
+    if((store.daily[dayKey(d)] || 0) < store.goal) d.setDate(d.getDate() - 1);
+    while((store.daily[dayKey(d)] || 0) >= store.goal){ n++; d.setDate(d.getDate() - 1); }
+    return n;
+  }
+
+  /* ================= 캔버스 장면 ================= */
+  const rand = (a,b) => a + Math.random()*(b-a);
+  let parts = [], extra = {}, t = 0;
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = canvas.clientWidth; H = canvas.clientHeight;
+    canvas.width = W*DPR; canvas.height = H*DPR;
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    initScene();
+  }
+  const scenes = {
+    fire:{
+      init(){ parts = []; },
+      draw(dt){
+        const g = ctx.createRadialGradient(W/2,H*.92,10,W/2,H*.85,Math.max(W,H)*.75);
+        g.addColorStop(0,'#3A1D0E'); g.addColorStop(.45,'#160D0A'); g.addColorStop(1,'#07080A');
+        ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+        const base = Math.min(W*.22, 170);
+        const n = reduceMotion ? 3 : 7;
+        for(let i=0;i<n;i++) parts.push({x:W/2+rand(-base,base)*Math.random(),y:H*.86+rand(-6,6),vx:rand(-.25,.25),vy:rand(-1.9,-.9),
+          life:0,max:rand(55,110),r:rand(18,46),ember:Math.random()<.04});
+        ctx.globalCompositeOperation = 'lighter';
+        for(let i=parts.length-1;i>=0;i--){
+          const p = parts[i]; p.life += dt; const k = p.life/p.max;
+          if(k>=1){ parts.splice(i,1); continue; }
+          p.x += p.vx*dt + Math.sin((t+p.y)*.02)*.35*dt; p.y += p.vy*dt;
+          if(p.ember){ p.vy -= .01*dt; ctx.fillStyle = `rgba(255,190,110,${(1-k)*.9})`; ctx.beginPath(); ctx.arc(p.x,p.y,1.4,0,7); ctx.fill(); }
+          else{
+            const r = p.r*(1-k*.75), gg = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r), hue = 42 - k*30;
+            gg.addColorStop(0,`hsla(${hue},100%,${62-k*20}%,${.42*(1-k)})`); gg.addColorStop(1,`hsla(${hue-10},100%,40%,0)`);
+            ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(p.x,p.y,r,0,7); ctx.fill();
+          }
+        }
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = '#120B08'; ctx.save(); ctx.translate(W/2,H*.9);
+        ctx.rotate(-.12); ctx.fillRect(-base*1.1,-8,base*2.2,16); ctx.rotate(.24); ctx.fillRect(-base*1.1,-8,base*2.2,16); ctx.restore();
+      }
+    },
+    water:{
+      init(){ parts = Array.from({length:60},()=>({x:rand(0,1),y:rand(.5,1),s:rand(.3,1)})); },
+      draw(){
+        const g = ctx.createLinearGradient(0,0,0,H);
+        g.addColorStop(0,'#0B1622'); g.addColorStop(.48,'#18324A'); g.addColorStop(.5,'#10283C'); g.addColorStop(1,'#06121C');
+        ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+        const mx = W*.7, my = H*.22, mg = ctx.createRadialGradient(mx,my,0,mx,my,120);
+        mg.addColorStop(0,'rgba(240,236,220,.9)'); mg.addColorStop(.18,'rgba(240,236,220,.85)'); mg.addColorStop(.22,'rgba(200,215,230,.15)'); mg.addColorStop(1,'rgba(200,215,230,0)');
+        ctx.fillStyle = mg; ctx.beginPath(); ctx.arc(mx,my,120,0,7); ctx.fill();
+        for(let l=0;l<7;l++){
+          const y0 = H*(.52+l*.07), amp = 4+l*3, sp = .006+l*.002;
+          ctx.beginPath(); ctx.moveTo(0,H);
+          for(let x=0;x<=W;x+=12) ctx.lineTo(x, y0 + Math.sin(x*.008+t*sp+l)*amp + Math.sin(x*.021-t*sp*1.3)*amp*.4);
+          ctx.lineTo(W,H); ctx.closePath(); ctx.fillStyle = `rgba(${14+l*3},${36+l*4},${56+l*4},.55)`; ctx.fill();
+        }
+        for(const p of parts){
+          const x = mx + (p.x-.5)*W*.25*p.y, y = H*p.y, a = (Math.sin(t*.05*p.s + p.x*40)+1)/2;
+          ctx.fillStyle = `rgba(235,235,220,${a*.5*p.s})`; ctx.fillRect(x-8*p.s, y, 16*p.s, 1.5);
+        }
+      }
+    },
+    rain:{
+      init(){
+        extra.bokeh = Array.from({length:26},()=>({x:rand(0,W),y:rand(H*.35,H),r:rand(20,70),h:Math.random()<.6?rand(28,45):rand(170,200),a:rand(.08,.22),p:rand(0,7)}));
+        extra.still = Array.from({length:Math.round(W*H/1800)},()=>({x:rand(0,W),y:rand(0,H),r:rand(.6,2.4)}));
+        parts = [];
+      },
+      draw(dt){
+        const g = ctx.createLinearGradient(0,0,0,H);
+        g.addColorStop(0,'#1A222B'); g.addColorStop(1,'#2A2F36');
+        ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+        for(const b of extra.bokeh){
+          const a = b.a*(.75+.25*Math.sin(t*.01+b.p));
+          const bg = ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r);
+          bg.addColorStop(0,`hsla(${b.h},70%,62%,${a})`); bg.addColorStop(.7,`hsla(${b.h},70%,55%,${a*.6})`); bg.addColorStop(1,`hsla(${b.h},70%,50%,0)`);
+          ctx.fillStyle = bg; ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,7); ctx.fill();
+        }
+        ctx.fillStyle = 'rgba(210,225,235,.22)';
+        for(const s of extra.still){ ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,7); ctx.fill(); }
+        if(parts.length < (reduceMotion?8:22) && Math.random() < .08*dt) parts.push({x:rand(0,W),y:rand(-20,H*.6),r:rand(2.5,5),vy:0,trail:[]});
+        for(let i=parts.length-1;i>=0;i--){
+          const d = parts[i];
+          d.vy = Math.min(d.vy + .015*dt, rand(.4,2.2)*(Math.random()<.04?0:1));
+          d.y += d.vy*dt; d.x += Math.sin(d.y*.05)*.15;
+          if(Math.random() < .3) d.trail.push({x:d.x,y:d.y,a:1});
+          ctx.fillStyle = 'rgba(210,225,235,.18)';
+          for(const tr of d.trail){ tr.a -= .004*dt; ctx.globalAlpha = Math.max(tr.a,0); ctx.beginPath(); ctx.arc(tr.x,tr.y,d.r*.35,0,7); ctx.fill(); }
+          ctx.globalAlpha = 1; d.trail = d.trail.filter(tr => tr.a > 0);
+          const dg = ctx.createRadialGradient(d.x-d.r*.3,d.y-d.r*.4,0,d.x,d.y,d.r);
+          dg.addColorStop(0,'rgba(255,255,255,.75)'); dg.addColorStop(.5,'rgba(190,210,225,.35)'); dg.addColorStop(1,'rgba(150,170,190,.15)');
+          ctx.fillStyle = dg; ctx.beginPath(); ctx.ellipse(d.x,d.y,d.r,d.r*1.15,0,0,7); ctx.fill();
+          if(d.y > H + 20) parts.splice(i,1);
+        }
+      }
+    },
+    fish:{
+      init(){
+        const cols = ['#F0A35C','#E8C46A','#F2F0E6','#7FC4C8','#E07A5F'];
+        parts = Array.from({length:9},()=>({x:rand(0,W),y:rand(H*.2,H*.75),s:rand(.6,1.3),v:rand(.25,.7)*(Math.random()<.5?-1:1),p:rand(0,7),c:cols[Math.floor(Math.random()*cols.length)]}));
+        extra.bubbles = [];
+        extra.plants = Array.from({length:Math.ceil(W/38)},(_,i)=>({x:i*38+rand(-10,10),h:rand(H*.12,H*.35),p:rand(0,7),c:Math.random()<.5?'#2F6B4F':'#3E7D58'}));
+      },
+      draw(dt){
+        const g = ctx.createLinearGradient(0,0,0,H);
+        g.addColorStop(0,'#1F5E6B'); g.addColorStop(.6,'#123F4C'); g.addColorStop(1,'#0A2630');
+        ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+        ctx.globalCompositeOperation = 'lighter';
+        for(let i=0;i<5;i++){
+          const x = W*(.15+i*.18) + Math.sin(t*.004+i)*40;
+          ctx.fillStyle = 'rgba(180,230,230,.035)';
+          ctx.beginPath(); ctx.moveTo(x-30,0); ctx.lineTo(x+30,0); ctx.lineTo(x+140,H); ctx.lineTo(x+20,H); ctx.closePath(); ctx.fill();
+        }
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = '#C9B48A'; ctx.globalAlpha = .25;
+        ctx.beginPath(); ctx.moveTo(0,H); ctx.quadraticCurveTo(W*.5,H*.86,W,H*.93); ctx.lineTo(W,H); ctx.fill(); ctx.globalAlpha = 1;
+        for(const pl of extra.plants){
+          ctx.strokeStyle = pl.c; ctx.lineWidth = 5; ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(pl.x,H);
+          for(let k=1;k<=6;k++){ const yy = H - pl.h*k/6; ctx.lineTo(pl.x + Math.sin(t*.015 + pl.p + k*.6)*k*3, yy); }
+          ctx.stroke();
+        }
+        for(const f of parts){
+          f.x += f.v*dt; f.y += Math.sin(t*.02+f.p)*.15*dt;
+          if(f.x > W+60) f.x = -60; if(f.x < -60) f.x = W+60;
+          const L = 26*f.s, dir = Math.sign(f.v), wag = Math.sin(t*.15+f.p)*4*f.s;
+          ctx.save(); ctx.translate(f.x,f.y); ctx.scale(dir,1);
+          ctx.fillStyle = f.c; ctx.globalAlpha = .9;
+          ctx.beginPath(); ctx.moveTo(-L*.7,0); ctx.lineTo(-L*1.2,-L*.35+wag); ctx.lineTo(-L*1.2,L*.35+wag); ctx.closePath(); ctx.fill();
+          ctx.beginPath(); ctx.ellipse(0,0,L*.75,L*.38,0,0,7); ctx.fill();
+          ctx.fillStyle = '#0A2630'; ctx.beginPath(); ctx.arc(L*.42,-L*.08,1.8*f.s,0,7); ctx.fill();
+          ctx.restore(); ctx.globalAlpha = 1;
+        }
+        if(Math.random() < .12*dt) extra.bubbles.push({x:W*.82+rand(-8,8),y:H*.97,r:rand(1.5,4.5),p:rand(0,7)});
+        ctx.strokeStyle = 'rgba(220,245,245,.55)'; ctx.lineWidth = 1;
+        for(let i=extra.bubbles.length-1;i>=0;i--){
+          const b = extra.bubbles[i]; b.y -= (1+b.r*.3)*dt; b.x += Math.sin(b.y*.05+b.p)*.4;
+          ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,7); ctx.stroke();
+          if(b.y < -10) extra.bubbles.splice(i,1);
+        }
+      }
+    },
+    cloud:{
+      init(){ parts = Array.from({length:14},()=>({x:rand(-.2,1.2),y:rand(.08,.75),r:rand(.12,.3),v:rand(.00004,.00012),a:rand(.25,.55)})); },
+      draw(dt){
+        const g = ctx.createLinearGradient(0,0,0,H);
+        g.addColorStop(0,'#2E3D5C'); g.addColorStop(.55,'#7A6C8E'); g.addColorStop(.85,'#C98E86'); g.addColorStop(1,'#D9A07F');
+        ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+        for(const c of parts){
+          c.x += c.v*dt*(reduceMotion?.5:1); if(c.x - c.r > 1.25) c.x = -.3;
+          const R = c.r*Math.max(W,H*1.2), cx = c.x*W, cy = c.y*H;
+          for(let k=0;k<3;k++){
+            const ox = (k-1)*R*.45, rr = R*(k===1?.75:.5), cg = ctx.createRadialGradient(cx+ox,cy,0,cx+ox,cy,rr);
+            cg.addColorStop(0,`rgba(255,228,220,${c.a*.6})`); cg.addColorStop(1,'rgba(255,228,220,0)');
+            ctx.fillStyle = cg; ctx.beginPath(); ctx.ellipse(cx+ox,cy,rr,rr*.45,0,0,7); ctx.fill();
+          }
+        }
+      }
+    },
+    snow:{
+      init(){ parts = Array.from({length:Math.round(W*H/5000)},()=>({x:rand(0,W),y:rand(0,H),r:rand(.8,3.2),v:rand(.2,.8),p:rand(0,7)})); },
+      draw(dt){
+        const g = ctx.createLinearGradient(0,0,0,H);
+        g.addColorStop(0,'#1C2433'); g.addColorStop(.7,'#3A4458'); g.addColorStop(1,'#596277');
+        ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+        const wx = W*.22, wy = H*.68, wg = ctx.createRadialGradient(wx,wy,0,wx,wy,90);
+        wg.addColorStop(0,'rgba(255,200,130,.5)'); wg.addColorStop(1,'rgba(255,200,130,0)');
+        ctx.fillStyle = wg; ctx.beginPath(); ctx.arc(wx,wy,90,0,7); ctx.fill();
+        ctx.fillStyle = '#FFD596'; ctx.fillRect(wx-9,wy-11,18,22);
+        ctx.fillStyle = '#E4E8EF';
+        ctx.beginPath(); ctx.moveTo(0,H); ctx.lineTo(0,H*.84); ctx.quadraticCurveTo(W*.35,H*.76,W*.6,H*.83); ctx.quadraticCurveTo(W*.85,H*.88,W,H*.8); ctx.lineTo(W,H); ctx.fill();
+        for(const s of parts){
+          s.y += s.v*s.r*.6*dt*(reduceMotion?.5:1); s.x += Math.sin(t*.01+s.p)*.3*s.r*.4;
+          if(s.y > H+5){ s.y = -5; s.x = rand(0,W); }
+          ctx.fillStyle = `rgba(245,248,255,${.4+s.r*.15})`; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,7); ctx.fill();
+        }
+      }
+    },
+    star:{
+      init(){ parts = Array.from({length:Math.round(W*H/2600)},()=>({x:rand(0,W),y:rand(0,H),r:rand(.3,1.5),p:rand(0,7),s:rand(.01,.04)})); extra.shoot = null; },
+      draw(dt){
+        const g = ctx.createLinearGradient(0,0,0,H);
+        g.addColorStop(0,'#05070F'); g.addColorStop(.7,'#0C1430'); g.addColorStop(1,'#1B2445');
+        ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+        for(const s of parts){ ctx.fillStyle = `rgba(230,236,255,${.35+.65*(Math.sin(t*s.s+s.p)+1)/2})`; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,7); ctx.fill(); }
+        if(!reduceMotion){
+          if(!extra.shoot && Math.random() < .002*dt) extra.shoot = {x:rand(W*.2,W),y:rand(0,H*.4),l:0};
+          const sh = extra.shoot;
+          if(sh){
+            sh.l += dt; const x = sh.x - sh.l*9, y = sh.y + sh.l*4, a = Math.max(0,1 - sh.l/40);
+            const lg = ctx.createLinearGradient(x,y,x+90,y-40); lg.addColorStop(0,`rgba(255,255,255,${a})`); lg.addColorStop(1,'rgba(255,255,255,0)');
+            ctx.strokeStyle = lg; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+90,y-40); ctx.stroke();
+            if(a <= 0) extra.shoot = null;
+          }
+        }
+      }
+    }
+  };
+  function initScene(){ extra = {}; scenes[state.scene].init(); }
+  let last = performance.now();
+  function frame(now){
+    const dt = Math.min((now-last)/16.67, 3); last = now; t += dt*(reduceMotion?.4:1);
+    scenes[state.scene].draw(dt);
+    if(state.running) tick();
+    requestAnimationFrame(frame);
+  }
+
+  /* ================= 소리 ================= */
+  let AC = null, master = null, voice = null;
+  function noiseBuffer(type){
+    const len = AC.sampleRate*3, buf = AC.createBuffer(1,len,AC.sampleRate), d = buf.getChannelData(0);
+    let lo = 0;
+    for(let i=0;i<len;i++){ const w = Math.random()*2-1; if(type==='brown'){ lo = (lo + .02*w)/1.02; d[i] = lo*3.5; } else d[i] = w; }
+    return buf;
+  }
+  function loopNoise(type){ const s = AC.createBufferSource(); s.buffer = noiseBuffer(type); s.loop = true; return s; }
+  function lfo(freq, depth, target){ const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = freq; g.gain.value = depth; o.connect(g).connect(target); o.start(); return o; }
+  function filtered(type, ftype, freq, gain, out, q){
+    const n = loopNoise(type), f = AC.createBiquadFilter(), g = AC.createGain();
+    f.type = ftype; f.frequency.value = freq; if(q) f.Q.value = q; g.gain.value = gain;
+    n.connect(f).connect(g).connect(out); n.start(); return {n, f, g};
+  }
+  function blip(out, f0, f1, dur, vol){
+    const o = AC.createOscillator(), g = AC.createGain(), s = AC.currentTime;
+    o.type = 'sine'; o.frequency.setValueAtTime(f0,s); o.frequency.exponentialRampToValueAtTime(f1,s+dur);
+    g.gain.setValueAtTime(vol,s); g.gain.exponentialRampToValueAtTime(.0001,s+dur);
+    o.connect(g).connect(out); o.start(s); o.stop(s+dur+.02);
+  }
+  function startSound(){
+    if(!state.sound) return;
+    try{
+      if(!AC){ AC = new (window.AudioContext||window.webkitAudioContext)(); master = AC.createGain(); master.gain.value = 0; master.connect(AC.destination); }
+      AC.resume(); stopVoice(true);
+      const nodes = [], timers = [], out = AC.createGain(); out.connect(master);
+      const every = (fn, a, b) => { const go = () => { fn(); timers.push(setTimeout(go, rand(a,b))); }; timers.push(setTimeout(go, rand(a,b))); };
+      const sc = state.scene;
+      if(sc==='fire'){
+        nodes.push(filtered('brown','lowpass',500,.5,out).n);
+        every(() => {
+          const b = AC.createBufferSource(), bb = AC.createBuffer(1, AC.sampleRate*.03, AC.sampleRate), d = bb.getChannelData(0);
+          for(let i=0;i<d.length;i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/d.length,4);
+          b.buffer = bb; const hp = AC.createBiquadFilter(); hp.type='highpass'; hp.frequency.value = 1500+Math.random()*2000;
+          const cg = AC.createGain(); cg.gain.value = rand(.08,.35); b.connect(hp).connect(cg).connect(out); b.start();
+        }, 60, 700);
+      } else if(sc==='water'){
+        const w = filtered('brown','lowpass',700,.45,out); nodes.push(w.n, lfo(.09,.35,w.g.gain), lfo(.09,350,w.f.frequency));
+      } else if(sc==='rain'){
+        nodes.push(filtered('white','bandpass',2400,.07,out,.6).n, filtered('brown','lowpass',900,.25,out).n);
+        every(() => blip(out, rand(900,1600), rand(300,500), .08, rand(.03,.08)), 120, 900);
+      } else if(sc==='fish'){
+        const h = filtered('brown','lowpass',260,.3,out); nodes.push(h.n);
+        every(() => blip(out, rand(350,600), rand(900,1500), rand(.05,.12), rand(.04,.09)), 90, 600);
+      } else if(sc==='cloud' || sc==='snow'){
+        const w = filtered('white','bandpass',sc==='snow'?300:420,.06,out,.8);
+        nodes.push(w.n, lfo(.05,180,w.f.frequency), lfo(.07,.03,w.g.gain));
+        if(sc==='snow') every(() => blip(out, 1760, 1740, 2.2, .012), 6000, 14000);
+      } else {
+        [110,164.8,220.5].forEach((fr,i) => {
+          const o = AC.createOscillator(), g = AC.createGain(); o.type='sine'; o.frequency.value = fr; g.gain.value = .05/(i+1);
+          o.connect(g).connect(out); o.start(); nodes.push(o, lfo(.03+i*.02, .03/(i+1), g.gain));
+        });
+      }
+      voice = {nodes, timers, out};
+      master.gain.cancelScheduledValues(AC.currentTime); master.gain.setTargetAtTime(.6, AC.currentTime, 1.2);
+    }catch(e){}
+  }
+  function stopVoice(now){
+    if(!voice) return;
+    const v = voice; voice = null;
+    v.timers.forEach(clearTimeout); v.timers.length = 0;
+    const kill = () => { v.nodes.forEach(n => { try{ n.stop(); }catch(e){} }); try{ v.out.disconnect(); }catch(e){} };
+    if(now || !AC){ kill(); return; }
+    master.gain.setTargetAtTime(0, AC.currentTime, .8); setTimeout(kill, 3500);
+  }
+  function chime(){
+    if(!state.sound || !AC) return;
+    [528,792].forEach((f,i) => {
+      const o = AC.createOscillator(), g = AC.createGain(), s = AC.currentTime + i*.35; o.type='sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(0,s); g.gain.linearRampToValueAtTime(.12,s+.03); g.gain.exponentialRampToValueAtTime(.0001,s+3.5);
+      o.connect(g).connect(AC.destination); o.start(s); o.stop(s+3.6);
+    });
+  }
+
+  /* ================= 세션 ================= */
+  const stage = $('#stage'), guide = $('#guide'), hud = $('#hud'), ringBar = $('#ringBar'), timeLeft = $('#timeLeft');
+  const C = 2*Math.PI*22; ringBar.style.strokeDasharray = C;
+  const fmt = s => `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+  const guides = ['눈에 힘을 풀어 보세요.', '생각이 떠오르면, 그냥 지나가게 두세요.', '애써 아무것도 하지 않아도 됩니다.'];
+  let guideTimers = [], wakeTimer = null;
+
+  function start(){
+    state.running = true; state.startAt = performance.now(); state.duration = state.minutes*60000;
+    track('meong_start', {scene: state.scene, minutes: state.minutes});
+    document.body.classList.add('immersed');
+    window.scrollTo({top:0, behavior: reduceMotion ? 'auto' : 'smooth'});
+    startSound();
+    guideTimers.forEach(clearTimeout); guideTimers = [];
+    guides.forEach((g,i) => {
+      guideTimers.push(setTimeout(() => { guide.textContent = g; guide.style.opacity = 1; }, 1800 + i*9000));
+      guideTimers.push(setTimeout(() => { guide.style.opacity = 0; }, 6800 + i*9000));
+    });
+    try{ window.meongApp && window.meongApp.setFullScreen(true); }catch(e){}
+    wake();
+  }
+  function tick(){
+    const el = performance.now() - state.startAt, left = Math.max(0, state.duration - el);
+    ringBar.style.strokeDashoffset = C*(el/state.duration);
+    timeLeft.textContent = fmt(Math.ceil(left/1000));
+    if(left <= 0) finish(true);
+  }
+  function finish(completed){
+    if(!state.running) return;
+    state.running = false;
+    const el = (performance.now() - state.startAt)/60000;
+    guideTimers.forEach(clearTimeout); guide.style.opacity = 0;
+    hud.classList.remove('show'); stage.classList.remove('awake');
+    stopVoice(false); if(completed) chime();
+    state.elapsedMin = el;
+    track(completed ? 'meong_complete' : 'meong_stop', {scene: state.scene, minutes: state.minutes, elapsed_min: Math.round(el*10)/10});
+    const k = dayKey(), before = store.daily[k] || 0;
+    if(el >= .5){
+      store.sessions++; store.minutes += el; store.daily[k] = before + el; pruneDaily(); persist(); renderAll();
+    }
+    const reached = before < store.goal && (store.daily[k] || 0) >= store.goal;
+    if(reached) track('goal_reached', {goal: store.goal});
+    $('#reflectTitle').textContent = reached ? '오늘 목표를 채웠어요.' : (completed ? '잘 쉬었어요.' : '여기까지도 충분해요.');
+    $('#shareCheck').checked = false;
+    $('#reflect').classList.add('open');
+    setTimeout(() => $('#thought').focus(), 100);
+  }
+  function closeReflect(){ try{ window.meongApp && window.meongApp.setFullScreen(false); }catch(e){} $('#reflect').classList.remove('open'); $('#thought').value = ''; document.body.classList.remove('immersed'); }
+  function wake(){
+    if(!state.running) return;
+    hud.classList.add('show'); stage.classList.add('awake');
+    clearTimeout(wakeTimer);
+    wakeTimer = setTimeout(() => { if(state.running){ hud.classList.remove('show'); stage.classList.remove('awake'); } }, 2800);
+  }
+  ['mousemove','touchstart','keydown'].forEach(ev => window.addEventListener(ev, wake, {passive:true}));
+  window.addEventListener('keydown', e => { if(e.key === 'Escape' && state.running) finish(false); });
+
+  /* ================= 토스트 / 보내기 ================= */
+  let toastTimer = null;
+  function toast(msg){ const el = $('#toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2200); }
+  async function sendOut(th){
+    track('thought_send', {scene: th.scene});
+    const text = `멍하다 건진 생각 (${sceneName[th.scene] || '멍'} ${th.min}분)\n\n“${th.text}”`;
+    try{ if(navigator.share){ await navigator.share({text}); return; } }catch(e){ if(e && e.name === 'AbortError') return; }
+    try{ await navigator.clipboard.writeText(text); toast('복사했어요. 원하는 곳에 붙여 넣으세요.'); }
+    catch(e){ toast('이 화면에서는 복사할 수 없어요. 글을 길게 눌러 직접 복사해 주세요.'); }
+  }
+
+  /* ================= 광장 (Firebase) ================= */
+  const board = { fs:null, uid:null, writable:false, ready:false, posts:[], reported:new Set() };
+  async function shareThought(th){
+    if(!board.writable) return false;
+    try{
+      await board.fs.collection('posts').doc(th.id).set({
+        uid: board.uid, text: th.text.slice(0,500), scene: th.scene,
+        min: Math.min(120, Math.max(1, Math.round(th.min))),
+        at: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      track('thought_shared', {scene: th.scene}); th.shared = true; persist(); renderLog(); toast('광장에 올렸어요.'); return true;
+    }catch(e){ toast('광장에 올리지 못했어요. 인터넷 연결을 확인해 주세요.'); return false; }
+  }
+  async function unshare(id){
+    try{
+      await board.fs.collection('posts').doc(id).delete();
+      const th = store.thoughts.find(x => x.id === id); if(th){ th.shared = false; persist(); renderLog(); }
+      toast('광장에서 내렸어요.');
+    }catch(e){ toast('내리지 못했어요. 잠시 뒤 다시 시도해 주세요.'); }
+  }
+  async function report(id){
+    try{
+      await board.fs.collection('reports').add({postId:id, uid:board.uid, at:firebase.firestore.FieldValue.serverTimestamp()});
+      board.reported.add(id); renderBoard(); toast('신고했어요. 확인 후 정리할게요.');
+    }catch(e){ toast('신고하지 못했어요. 잠시 뒤 다시 시도해 주세요.'); }
+  }
+  function renderBoard(){
+    const wrap = $('#board'), status = $('#boardStatus');
+    if(!board.fs || !board.ready) return;
+    wrap.innerHTML = '';
+    status.hidden = board.posts.length > 0;
+    status.textContent = '아직 광장이 비어 있어요. 멍때린 뒤 생각을 첫 번째로 올려 보세요.';
+    for(const p of board.posts){
+      const mine = p.uid === board.uid;
+      const card = document.createElement('article'); card.className = 'card' + (mine ? ' mine' : '');
+      const tx = document.createElement('div'); tx.className = 'text'; tx.textContent = p.text;
+      const meta = document.createElement('div'); meta.className = 'meta';
+      const d = p.at && p.at.toDate ? p.at.toDate() : new Date();
+      const info = document.createElement('span');
+      info.textContent = `${mine ? '내 생각, ' : ''}${sceneName[p.scene] || '멍'} ${p.min || 1}분 뒤, ${d.getMonth()+1}월 ${d.getDate()}일`;
+      meta.appendChild(info);
+      if(mine){
+        const del = document.createElement('button'); del.className = 'link'; del.textContent = '내리기';
+        del.addEventListener('click', () => unshare(p.id)); meta.appendChild(del);
+      } else if(board.writable && !board.reported.has(p.id)){
+        const rp = document.createElement('button'); rp.className = 'link'; rp.textContent = '신고';
+        rp.addEventListener('click', () => report(p.id)); meta.appendChild(rp);
+      }
+      card.append(tx, meta); wrap.appendChild(card);
+    }
+  }
+
+  /* ================= 렌더 ================= */
+  function renderToday(){
+    const k = dayKey(), today = store.daily[k] || 0, goal = store.goal, pct = Math.min(1, today/goal);
+    const R = 2*Math.PI*80, big = $('#bigBar');
+    big.style.strokeDasharray = R; big.style.strokeDashoffset = R*(1-pct);
+    $('#todayMin').textContent = Math.floor(today);
+    $('#todayGoal').textContent = today >= goal ? `목표 ${goal}분 달성` : `목표 ${goal}분`;
+    $('#miniText').textContent = today >= goal ? `오늘 목표 ${goal}분 달성` : `오늘 ${Math.floor(today)} / ${goal}분`;
+    $('#miniFill').style.width = (pct*100) + '%';
+    $('#streak').textContent = streak();
+    $('#statSessions').textContent = store.sessions;
+    $('#statMinutes').textContent = Math.round(store.minutes);
+    document.querySelectorAll('#goalPick button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.goal === goal));
+    const week = $('#week'); week.innerHTML = '';
+    const days = []; for(let i=6;i>=0;i--){ const d = new Date(); d.setDate(d.getDate()-i); days.push(d); }
+    const vals = days.map(d => store.daily[dayKey(d)] || 0), max = Math.max(goal, ...vals);
+    const names = ['일','월','화','수','목','금','토'];
+    days.forEach((d,i) => {
+      const col = document.createElement('div'); col.className = 'day' + (i === 6 ? ' is-today' : '');
+      const bar = document.createElement('div'); bar.className = 'bar' + (vals[i] >= goal ? ' met' : '');
+      bar.style.height = Math.max(3, vals[i]/max*70) + 'px';
+      bar.title = `${d.getMonth()+1}월 ${d.getDate()}일 ${Math.round(vals[i])}분`;
+      const lbl = document.createElement('span'); lbl.className = 'd'; lbl.textContent = names[d.getDay()];
+      col.append(bar, lbl); week.appendChild(col);
+    });
+  }
+  function renderLog(){
+    const log = $('#log'); log.innerHTML = '';
+    if(!store.thoughts.length){
+      const li = document.createElement('li'); li.style.border = '0';
+      li.innerHTML = '<div class="empty">아직 건진 생각이 없어요. 한 번 멍때리고 나면 여기에 쌓입니다.</div>';
+      log.appendChild(li); return;
+    }
+    store.thoughts.slice().reverse().forEach(th => {
+      const li = document.createElement('li'), d = new Date(th.at);
+      const meta = document.createElement('div'); meta.className = 'meta';
+      const info = document.createElement('span');
+      info.textContent = `${d.getMonth()+1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}, ${sceneName[th.scene]||''} ${th.min}분 뒤 `;
+      if(th.shared){ const tg = document.createElement('span'); tg.className = 'tag'; tg.textContent = '광장에 공유됨'; info.appendChild(tg); }
+      const tools = document.createElement('span'); tools.className = 'tools';
+      if(board.writable && !th.shared){
+        const sh = document.createElement('button'); sh.className = 'link'; sh.textContent = '광장에 공유';
+        sh.addEventListener('click', () => shareThought(th)); tools.appendChild(sh);
+      }
+      const out = document.createElement('button'); out.className = 'link'; out.textContent = '보내기';
+      out.addEventListener('click', () => sendOut(th)); tools.appendChild(out);
+      const del = document.createElement('button'); del.className = 'link'; del.textContent = '지우기';
+      del.addEventListener('click', async () => {
+        if(th.shared && board.writable) await unshare(th.id);
+        store.thoughts = store.thoughts.filter(x => x.id !== th.id); persist(); renderLog();
+      });
+      tools.appendChild(del);
+      meta.append(info, tools);
+      const tx = document.createElement('div'); tx.className = 'text'; tx.textContent = th.text;
+      li.append(meta, tx); log.appendChild(li);
+    });
+  }
+  function renderAll(){ renderToday(); renderLog(); }
+
+  /* ================= 컨트롤 ================= */
+  function pick(group, btn){ group.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b === btn)); }
+  $('#scenes').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; pick($('#scenes'), b); state.scene = b.dataset.scene; initScene(); });
+  $('#durations').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; pick($('#durations'), b); state.minutes = +b.dataset.min; timeLeft.textContent = fmt(state.minutes*60); });
+  $('#goalPick').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; store.goal = +b.dataset.goal; persist(); renderToday(); track('goal_set', {goal: store.goal}); });
+  $('#soundBtn').addEventListener('click', e => {
+    state.sound = !state.sound;
+    e.currentTarget.setAttribute('aria-pressed', state.sound);
+    e.currentTarget.textContent = state.sound ? '소리 켜짐' : '소리 꺼짐';
+    if(state.running){ state.sound ? startSound() : stopVoice(false); }
+  });
+  $('#startBtn').addEventListener('click', start);
+  $('#stopBtn').addEventListener('click', () => finish(false));
+  $('#saveBtn').addEventListener('click', async () => {
+    const text = $('#thought').value.trim(), wantShare = $('#shareCheck').checked;
+    let th = null;
+    if(text){
+      th = {id: Date.now().toString(36) + Math.random().toString(36).slice(2,7), at:Date.now(), text, scene:state.scene, min:Math.max(1, Math.round(state.elapsedMin)), shared:false};
+      store.thoughts.push(th); if(store.thoughts.length > MAX_THOUGHTS) store.thoughts = store.thoughts.slice(-MAX_THOUGHTS);
+      persist(); renderLog();
+      track('thought_saved', {scene: state.scene, shared: wantShare});
+    }
+    closeReflect();
+    if(th && wantShare) await shareThought(th);
+    if(th) setTimeout(() => document.getElementById(wantShare && board.writable ? 'plaza' : 'notes').scrollIntoView({behavior: reduceMotion?'auto':'smooth'}), 300);
+  });
+  $('#skipBtn').addEventListener('click', closeReflect);
+  $('#againBtn').addEventListener('click', () => { window.scrollTo({top:0, behavior: reduceMotion?'auto':'smooth'}); setTimeout(() => $('#startBtn').focus(), 400); });
+
+  window.addEventListener('resize', resize);
+  resize(); renderAll();
+  requestAnimationFrame(frame);
+
+  /* ================= Firebase 연결 ================= */
+  (async () => {
+    const off = msg => { const s = $('#boardStatus'); s.textContent = msg; s.hidden = false; $('#board').innerHTML = ''; };
+    const cfg = window.FIREBASE_CONFIG;
+    if(typeof firebase === 'undefined' || !cfg || !cfg.apiKey || !cfg.projectId){
+      off('멍 광장은 아직 설정되지 않았어요. 개인 기록과 멍때리기는 그대로 쓸 수 있어요.'); return;
+    }
+    try{
+      firebase.initializeApp(cfg);
+      board.fs = firebase.firestore();
+      const cred = await firebase.auth().signInAnonymously();
+      board.uid = cred.user.uid; board.writable = true;
+    }catch(e){ off('광장에 연결하지 못했어요. 인터넷 연결을 확인한 뒤 페이지를 새로고침해 주세요.'); return; }
+    $('#shareLabel').hidden = false;
+    renderLog();
+    const loadTimer = setTimeout(() => { if(!board.ready) off('광장에 아직 연결되지 않았어요. 인터넷 연결을 확인해 주세요.'); }, 10000);
+    board.fs.collection('posts').orderBy('at','desc').limit(80).onSnapshot(snap => {
+      board.posts = snap.docs.map(d => ({id:d.id, ...d.data({serverTimestamps:'estimate'})})).filter(p => typeof p.text === 'string');
+      board.ready = true; clearTimeout(loadTimer); renderBoard();
+    }, () => { clearTimeout(loadTimer); off('광장을 불러오지 못했어요. 잠시 뒤 페이지를 새로고침해 주세요.'); });
+  })();
+})();
+</script>
+</body>
+</html>
